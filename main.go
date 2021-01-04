@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"sadlyy/auth"
+	"sadlyy/campaign"
 	"sadlyy/handler"
 	"sadlyy/helper"
 	"sadlyy/user"
@@ -24,24 +25,14 @@ func main() {
 	}
 
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
 	userService := user.NewService(userRepository)
+	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
 
-	//input := user.LoginInput{
-	//	Email: "tegarp00@gmail.com",
-	//	Password: "password",
-	//}
-
-	//user, err := userService.Login(input)
-	//if err != nil {
-	//	fmt.Println("terjadi kesalahan")
-	//	fmt.Println(err.Error())
-	//}
-
-	//fmt.Println(user.Email)
-	//fmt.Println(user.Name)
-
 	userHandler := handler.NewUserHandler(userService, authService)
+	campaignHandler := handler.NewCampaignHandler(campaignService)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
@@ -50,6 +41,8 @@ func main() {
 	api.POST("/sessions", userHandler.Login)
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+
+	api.GET("/campaigns", campaignHandler.GetCampaigns)
 
 	router.Run()
 }
